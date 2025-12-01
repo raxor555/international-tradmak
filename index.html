@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>TradMAK Connect</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              // Custom palette inspired by the screenshot provided (Dark Teal/Charcoal)
+              app: {
+                dark: '#111b21', // Main background
+                sidebar: '#202c33', // Sidebar background
+                active: '#2a3942', // Hover/Active state
+                teal: '#00a884', // Primary accent (WhatsApp-ish)
+                tealDark: '#008069',
+                incoming: '#202c33',
+                outgoing: '#005c4b',
+                text: '#e9edef',
+                subtext: '#8696a0',
+                input: '#2a3942',
+              }
+            },
+            fontFamily: {
+              sans: ['Segoe UI', 'Helvetica Neue', 'Helvetica', 'Arial', 'sans-serif'],
+            }
+          }
+        }
+      }
+    </script>
+    <style>
+      /* Custom Scrollbar for that native feel */
+      ::-webkit-scrollbar {
+        width: 6px;
+      }
+      ::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: rgba(134, 150, 160, 0.3);
+        border-radius: 3px;
+      }
+      body {
+        background-color: #0c1317;
+        color: #e9edef;
+      }
+    </style>
+  <script type="importmap">
+{
+  "imports": {
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.555.0",
+    "react/": "https://aistudiocdn.com/react@^19.2.0/",
+    "react": "https://aistudiocdn.com/react@^19.2.0"
+  }
+}
+</script>
+</head>
+  <body>
+    <div id="root"></div>
+  </body>
+</html>

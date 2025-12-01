@@ -1,0 +1,5 @@
+{
+  "name": "TradMAK Connect",
+  "description": "A WhatsApp-style chat application for managing retailer and warehouse communications with multi-language support and webhook integration.",
+  "requestFramePermissions": []
+}
