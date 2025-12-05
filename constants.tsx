@@ -12,6 +12,24 @@ import {
 
 export const MOCK_WEBHOOK_BASE = "https://api.tradmak-clone.com/webhook";
 
+// Base URLs provided previously
+const ELECTRICAL_EN = 'https://n8n.srv1040836.hstgr.cloud/webhook/webhook-english-electrical';
+const ELECTRICAL_AR = 'https://n8n.srv1040836.hstgr.cloud/webhook/webhook-arabic-electrical';
+const RESTAURANT_EN_BASE = 'https://n8n.srv1040836.hstgr.cloud/webhook/english-resturant';
+const RESTAURANT_AR_BASE = 'https://n8n.srv1040836.hstgr.cloud/webhook/arabic-resturant';
+
+// Derived specific webhooks for Restaurant Options
+export const RESTAURANT_WEBHOOKS = {
+  en: {
+    driveThru: 'https://n8n.srv1040836.hstgr.cloud/webhook/dine-in-reservation',
+    dineIn: 'https://n8n.srv1040836.hstgr.cloud/webhook/dine-in-reservation', // Using same webhook for Dine In as requested for Drive Thru (reservation)
+  },
+  ar: {
+    driveThru: 'https://n8n.srv1040836.hstgr.cloud/webhook/arabic-resturant-drivethru',
+    dineIn: 'https://n8n.srv1040836.hstgr.cloud/webhook/arabic-resturant-pickup', // Fallback for Arabic Dine In
+  }
+};
+
 export const CONTACTS: Contact[] = [
   {
     id: 'retailer-electrical',
@@ -19,8 +37,8 @@ export const CONTACTS: Contact[] = [
     type: 'Retailer',
     iconName: 'Zap',
     webhooks: {
-      en: 'https://n8n.srv1040836.hstgr.cloud/webhook/webhook-english-electrical',
-      ar: 'https://n8n.srv1040836.hstgr.cloud/webhook/webhook-arabic-electrical'
+      en: ELECTRICAL_EN,
+      ar: ELECTRICAL_AR
     },
     lastMessage: 'Circuit availability confirmed.'
   },
@@ -81,8 +99,8 @@ export const CONTACTS: Contact[] = [
     type: 'Service',
     iconName: 'Utensils',
     webhooks: {
-      en: 'https://n8n.srv1040836.hstgr.cloud/webhook/english-resturant',
-      ar: 'https://n8n.srv1040836.hstgr.cloud/webhook/arabic-resturant'
+      en: RESTAURANT_EN_BASE,
+      ar: RESTAURANT_AR_BASE
     }
   }
 ];

@@ -7,6 +7,7 @@ interface WebhookPayload {
   timestamp: Date;
   userData?: UserData;
   sessionId: string;
+  selectedOption?: string; // e.g., 'pickup', 'driveThru'
 }
 
 export const sendToWebhook = async (
