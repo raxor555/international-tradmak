@@ -10,7 +10,6 @@ const App: React.FC = () => {
   const [sessions, setSessions] = useState<Record<string, ChatSession>>({});
 
   const generateSessionId = () => {
-    // Simple unique ID generator
     return 'sess_' + Date.now().toString(36) + Math.random().toString(36).substr(2, 9);
   };
 
@@ -61,8 +60,6 @@ const App: React.FC = () => {
   };
 
   const handleReceiveMessage = (contactId: string, text: string) => {
-    // Check if the text is a direct image URL
-    // Regex checks for http(s) followed by common image extensions, allowing for query params
     const isImageUrl = /(https?:\/\/.*\.(?:png|jpg|jpeg|gif|webp|svg))(\?.*)?$/i.test(text.trim());
 
     const newMessage: Message = {
@@ -72,14 +69,12 @@ const App: React.FC = () => {
       timestamp: new Date(),
       type: isImageUrl ? 'image' : 'text',
       mediaUrl: isImageUrl ? text.trim() : undefined,
-      isAnimated: !isImageUrl // Enable typewriter effect only for text messages
+      isAnimated: !isImageUrl
     };
 
     setSessions(prev => {
       const session = prev[contactId];
-      // Check if session exists (should always exist if receiving message)
       if (!session) return prev;
-      
       return {
         ...prev,
         [contactId]: {
@@ -91,43 +86,47 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="flex h-screen w-screen overflow-hidden bg-app-dark text-app-text font-sans antialiased">
-      {/* Sidebar - Hidden on mobile if chat is active, or use simple visibility logic */}
-      <div className={`${activeContact ? 'hidden md:flex' : 'flex'} w-full md:w-auto h-full`}>
-        <ChatSidebar 
-          contacts={CONTACTS} 
-          activeContactId={activeContact?.id || null} 
-          onSelectContact={handleSelectContact} 
-        />
-      </div>
+    <div className="app-wrapper flex flex-col items-center justify-center bg-app-bg text-app-text font-sans antialiased">
+        {/* Green accent background strip could go here, but relying on body color for now */}
+        
+        <div className="w-full h-full md:max-w-[1600px] md:h-[95vh] md:my-auto bg-app-sidebar md:shadow-panel flex overflow-hidden md:rounded-lg">
+            {/* Sidebar */}
+            <div className={`${activeContact ? 'hidden md:flex' : 'flex'} w-full md:w-[400px] lg:w-[450px] flex-col border-r border-app-border`}>
+                <ChatSidebar 
+                    contacts={CONTACTS} 
+                    activeContactId={activeContact?.id || null} 
+                    onSelectContact={handleSelectContact} 
+                />
+            </div>
 
-      {/* Main Chat Area */}
-      <div className={`flex-1 h-full ${!activeContact ? 'hidden md:flex' : 'flex'} flex-col bg-app-dark relative`}>
-        {activeContact ? (
-          <ChatWindow 
-            contact={activeContact} 
-            session={sessions[activeContact.id]} 
-            onUpdateSession={updateSession}
-            onSendMessage={handleSendMessage}
-            onReceiveMessage={handleReceiveMessage}
-          />
-        ) : (
-          /* Empty State */
-          <div className="flex flex-col items-center justify-center h-full text-center p-8 bg-app-sidebar border-l border-gray-800">
-            <div className="w-64 h-64 mb-8 opacity-50 grayscale">
-                 <img src="https://picsum.photos/400/400?grayscale" alt="Welcome" className="rounded-full shadow-2xl" />
+            {/* Main Chat Area */}
+            <div className={`flex-1 h-full ${!activeContact ? 'hidden md:flex' : 'flex'} flex-col bg-app-chat relative`}>
+                {activeContact ? (
+                <ChatWindow 
+                    contact={activeContact} 
+                    session={sessions[activeContact.id]} 
+                    onUpdateSession={updateSession}
+                    onSendMessage={handleSendMessage}
+                    onReceiveMessage={handleReceiveMessage}
+                />
+                ) : (
+                /* Empty State */
+                <div className="flex flex-col items-center justify-center h-full text-center p-8 bg-app-header border-b-[6px] border-app-teal">
+                    <div className="w-64 h-64 mb-8 opacity-90">
+                        <img src="https://img.freepik.com/free-vector/messaging-fun-concept-illustration_114360-1574.jpg?t=st=1709999999~exp=1710003599~hmac=xyz" alt="Welcome" className="rounded-full shadow-lg mix-blend-multiply" />
+                    </div>
+                    <h1 className="text-3xl font-light text-gray-700 mb-4">TradMAK Connect</h1>
+                    <p className="text-gray-500 max-w-md">
+                    Select a retailer or warehouse from the sidebar to start communicating. 
+                    <br/>Secure webhook integration for instant order processing.
+                    </p>
+                    <div className="mt-8 flex gap-2 text-xs text-gray-400">
+                        <span>🔒 End-to-end encrypted</span>
+                    </div>
+                </div>
+                )}
             </div>
-            <h1 className="text-3xl font-light text-gray-300 mb-4">TradMAK Connect</h1>
-            <p className="text-gray-500 max-w-md">
-              Select a retailer or warehouse from the sidebar to start communicating. 
-              Secure, end-to-end webhook integration for instant order processing.
-            </p>
-            <div className="mt-8 flex gap-2 text-xs text-gray-600">
-                <span>🔒 End-to-end encrypted</span>
-            </div>
-          </div>
-        )}
-      </div>
+        </div>
     </div>
   );
 };

@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -13,27 +14,35 @@
           extend: {
             colors: {
               app: {
-                dark: '#111b21', // Main background
-                sidebar: '#202c33', // Sidebar background
-                active: '#2a3942', // Hover/Active state
-                teal: '#00a884', // Primary accent (WhatsApp-ish)
-                tealDark: '#008069',
-                incoming: '#202c33',
-                outgoing: '#005c4b',
-                text: '#e9edef',
-                subtext: '#8696a0',
-                input: '#2a3942',
+                bg: '#d1d7db',         // Outer background (Gray)
+                sidebar: '#ffffff',    // Sidebar background (White)
+                header: '#f0f2f5',     // Header & Footer background (Light Gray)
+                chat: '#efeae2',       // Chat area background (Beige)
+                incoming: '#ffffff',   // Incoming bubble (White)
+                outgoing: '#d9fdd3',   // Outgoing bubble (Light Green)
+                active: '#f0f2f5',     // Hover/Active Item state
+                teal: '#00a884',       // Primary Brand Color
+                tealDark: '#008069',   // Darker Teal
+                text: '#111b21',       // Primary Text (Dark)
+                subtext: '#667781',    // Secondary Text (Gray)
+                border: '#e9edef',     // Border lines
+                input: '#ffffff',      // Input fields
+                icon: '#54656f',       // Icon color
               }
             },
             fontFamily: {
               sans: ['Segoe UI', 'Helvetica Neue', 'Helvetica', 'Arial', 'sans-serif'],
+            },
+            boxShadow: {
+              'msg': '0 1px 0.5px rgba(11,20,26,.13)',
+              'panel': '0 17px 50px 0 rgba(11,20,26,.19), 0 12px 15px 0 rgba(11,20,26,.24)'
             }
           }
         }
       }
     </script>
     <style>
-      /* Custom Scrollbar for that native feel */
+      /* Custom Scrollbar */
       ::-webkit-scrollbar {
         width: 6px;
       }
@@ -41,12 +50,31 @@
         background: transparent;
       }
       ::-webkit-scrollbar-thumb {
-        background: rgba(134, 150, 160, 0.3);
+        background: rgba(11, 20, 26, 0.2);
         border-radius: 3px;
       }
       body {
-        background-color: #0c1317;
-        color: #e9edef;
+        background-color: #d1d7db;
+        color: #111b21;
+      }
+      /* Ensure the green top bar effect if we wanted it, but keeping it simple for now */
+      .app-wrapper {
+        position: relative;
+        top: 0;
+        z-index: 100;
+        height: 100vh;
+        width: 100%;
+        overflow: hidden;
+      }
+      @media (min-width: 1441px) {
+        .container-xl {
+            max-width: 1600px;
+            width: 100%;
+            height: calc(100% - 38px);
+            margin: 19px auto;
+            top: 19px;
+            box-shadow: 0 17px 50px 0 rgba(11,20,26,.19), 0 12px 15px 0 rgba(11,20,26,.24);
+        }
       }
     </style>
   <script type="importmap">

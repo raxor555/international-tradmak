@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Contact, Message, Language, ChatSession, UserData, ChatOption } from '../types';
 import { getIconComponent, RESTAURANT_WEBHOOKS } from '../constants';
-import { MoreVertical, Search, Paperclip, Smile, Mic, Send, BookOpenCheck, BadgePercent, Car, ShoppingBag, Award, X, Utensils } from 'lucide-react';
+import { MoreVertical, Search, Paperclip, Smile, Mic, Send, BookOpenCheck, BadgePercent, Car, ShoppingBag, Award, X, Utensils, Check, CheckCheck } from 'lucide-react';
 import { sendToWebhook } from '../services/webhookService';
 import { UserDetailsForm } from './UserDetailsForm';
 import { TypewriterText } from './TypewriterText';
@@ -33,7 +33,6 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const Icon = getIconComponent(contact.iconName);
 
-  // Auto-scroll to bottom
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
@@ -42,7 +41,6 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
     scrollToBottom();
   }, [session.messages, isTyping]);
 
-  // Initial Logic: If no language selected, prompt for it
   useEffect(() => {
     if (session.language === Language.UNSELECTED && session.messages.length === 0) {
       const initialMessage: Message = {
@@ -60,10 +58,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
   }, [contact.id, session.language, session.messages.length, onUpdateSession]);
 
   const handleLanguageSelect = (lang: Language) => {
-    // 1. Remove the language selector buttons from history
     const filteredMessages = session.messages.filter(msg => msg.type !== 'language-selector');
-
-    // 2. Add a persistent user message confirming the selection
     const confirmText = lang === Language.ENGLISH ? "Language selected: English" : "تم اختيار اللغة: العربية";
     const userMsg: Message = {
         id: Date.now().toString(),
@@ -78,7 +73,6 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
       messages: [...filteredMessages, userMsg]
     });
     
-    // Open the form immediately after language selection if we don't have user data yet
     if (!session.userData) {
       setShowUserForm(true);
     }
@@ -86,11 +80,8 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
 
   const handleFormSubmit = (userData: UserData) => {
     setShowUserForm(false);
-    
-    // Save user data
     const updates: Partial<ChatSession> = { userData: userData };
 
-    // Check if it's the restaurant contact
     if (contact.id === 'restaurant-general') {
       const isEnglish = session.language === Language.ENGLISH;
       const optionsMessage: Message = {
@@ -114,7 +105,6 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
       };
       updates.messages = [...session.messages, optionsMessage];
     } else {
-      // Standard flow
       const welcomeText = session.language === Language.ENGLISH 
         ? `Welcome, ${userData.name}! We have received your details. How can we help you today?`
         : `مرحبًا ${userData.name}! لقد استلمنا بياناتك. كيف يمكننا مساعدتك اليوم؟`;
@@ -134,9 +124,8 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
   };
 
   const handleRestaurantOptionSelect = async (option: ChatOption) => {
-    // 1. Determine specific webhook
     const langKey = session.language === Language.ENGLISH ? 'en' : 'ar';
-    // @ts-ignore - Indexing RESTAURANT_WEBHOOKS dynamically
+    // @ts-ignore
     const specificWebhook = RESTAURANT_WEBHOOKS[langKey][option.value];
 
     if (!specificWebhook) {
@@ -144,12 +133,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
       return;
     }
 
-    // 2. Prepare UI updates: 
-    //    a) Remove the option selector buttons from history
-    //    b) Add a user message indicating selection
-    
     const filteredMessages = session.messages.filter(msg => msg.type !== 'option-selector');
-    
     const selectionText = session.language === Language.ENGLISH 
       ? `Selected: ${option.label}` 
       : `تم اختيار: ${option.label}`;
@@ -162,19 +146,17 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
         type: 'text'
     };
 
-    // 3. Update Session: Set specific webhook, persist selected option, and update messages
     onUpdateSession(contact.id, { 
         activeWebhookUrl: specificWebhook,
         selectedOption: option.value,
         messages: [...filteredMessages, userMsg]
     });
 
-    // 4. Trigger Webhook with initial context
     setIsTyping(true);
     try {
       const responseText = await sendToWebhook(specificWebhook, {
-        message: `User selected: ${option.value}`, // Initial trigger message for the bot
-        selectedOption: option.value, // Sends 'driveThru', 'pickup', or 'loyalty'
+        message: `User selected: ${option.value}`,
+        selectedOption: option.value,
         language: session.language,
         timestamp: new Date(),
         userData: session.userData,
@@ -203,7 +185,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
     if (!inputText.trim()) return;
     
     if (session.language === Language.UNSELECTED) {
-        alert("Please select a language first / الرجاء اختيار لغة أولاً");
+        alert("Please select a language first");
         return;
     }
     
@@ -217,7 +199,6 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
     
     onSendMessage(contact.id, text);
 
-    // Determine Webhook URL: Use active/specific if set, else fallback to contact default
     let webhookUrl = session.activeWebhookUrl;
     if (!webhookUrl) {
        webhookUrl = session.language === Language.ENGLISH ? contact.webhooks.en : contact.webhooks.ar;
@@ -228,7 +209,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
     try {
       const responseText = await sendToWebhook(webhookUrl, {
         message: text,
-        selectedOption: session.selectedOption, // Persist the selected option in subsequent messages
+        selectedOption: session.selectedOption,
         language: session.language,
         timestamp: new Date(),
         userData: session.userData,
@@ -251,7 +232,8 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
-  const bgPattern = `url("data:image/svg+xml,%3Csvg width='64' height='64' viewBox='0 0 64 64' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M8 16c4.418 0 8-3.582 8-8s-3.582-8-8-8-8 3.582-8 8 3.582 8 8 8zm0-2c3.314 0 6-2.686 6-6s-2.686-6-6-6-6 2.686-6 6 2.686 6 6 2.686 6 6 6zm33.414-6l5.95-5.95L45.95.636 40 6.586 34.05.636 32.636 2.05 38.586 8l-5.95 5.95 1.414 1.414L40 9.414l5.95 5.95 1.414-1.414L41.414 8zM40 48c4.418 0 8-3.582 8-8s-3.582-8-8-8-8 3.582-8 8 3.582 8 8 8zm0-2c3.314 0 6-2.686 6-6s-2.686-6-6-6-6 2.686-6 6 2.686 6 6 2.686 6 6 6zM9.414 40l5.95-5.95-1.414-1.414L8 38.586l-5.95-5.95L.636 34.05 6.586 40l-5.95 5.95 1.414 1.414L8 41.414l5.95 5.95 1.414-1.414L9.414 40z' fill='%230b141a' fill-opacity='0.4' fill-rule='evenodd'/%3E%3C/svg%3E")`;
+  // WhatsApp-like doodle background pattern, reduced opacity for light mode
+  const bgPattern = `url("data:image/svg+xml,%3Csvg width='64' height='64' viewBox='0 0 64 64' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M8 16c4.418 0 8-3.582 8-8s-3.582-8-8-8-8 3.582-8 8 3.582 8 8 8zm0-2c3.314 0 6-2.686 6-6s-2.686-6-6-6-6 2.686-6 6 2.686 6 6 2.686 6 6 6zm33.414-6l5.95-5.95L45.95.636 40 6.586 34.05.636 32.636 2.05 38.586 8l-5.95 5.95 1.414 1.414L40 9.414l5.95 5.95 1.414-1.414L41.414 8zM40 48c4.418 0 8-3.582 8-8s-3.582-8-8-8-8 3.582-8 8 3.582 8 8 8zm0-2c3.314 0 6-2.686 6-6s-2.686-6-6-6-6 2.686-6 6 2.686 6 6 2.686 6 6 6zM9.414 40l5.95-5.95-1.414-1.414L8 38.586l-5.95-5.95L.636 34.05 6.586 40l-5.95 5.95 1.414 1.414L8 41.414l5.95 5.95 1.414-1.414L9.414 40z' fill='%23667781' fill-opacity='0.08' fill-rule='evenodd'/%3E%3C/svg%3E")`;
 
   const isRestaurant = contact.id === 'restaurant-general';
 
@@ -266,7 +248,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
   };
 
   return (
-    <div className="flex flex-col h-full bg-app-dark relative">
+    <div className="flex flex-col h-full bg-app-chat relative">
       <UserDetailsForm 
         isOpen={showUserForm} 
         onSubmit={handleFormSubmit} 
@@ -279,80 +261,79 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
           className="absolute inset-0 z-[60] flex items-center justify-center bg-black/85 backdrop-blur-sm p-4 transition-all animate-in fade-in duration-200"
           onClick={() => setActivePopupImage(null)}
         >
-          <div 
-            className="relative max-w-full max-h-full flex flex-col items-center justify-center animate-in zoom-in-95 duration-300"
-            onClick={(e) => e.stopPropagation()}
-          >
+          <div className="relative max-w-full max-h-full flex flex-col items-center justify-center animate-in zoom-in-95 duration-300">
             <button 
               onClick={() => setActivePopupImage(null)} 
-              className="absolute -top-12 right-0 md:-right-12 p-2 bg-gray-800/60 hover:bg-app-teal rounded-full text-white transition-colors border border-gray-600"
+              className="absolute -top-12 right-0 p-2 bg-white rounded-full text-black transition-colors"
             >
               <X className="w-6 h-6" />
             </button>
             <img 
               src={activePopupImage} 
-              className="max-w-full max-h-[85vh] object-contain rounded-xl shadow-2xl border border-gray-800" 
+              className="max-w-full max-h-[85vh] object-contain rounded-lg shadow-2xl" 
               alt="Popup Content" 
             />
           </div>
         </div>
       )}
 
+      {/* Background Pattern */}
       <div 
-        className="absolute inset-0 opacity-10 pointer-events-none z-0" 
+        className="absolute inset-0 pointer-events-none z-0" 
         style={{ backgroundImage: bgPattern }}
       ></div>
 
       {/* Header */}
-      <header className="flex items-center justify-between px-4 py-3 bg-app-sidebar border-b border-gray-700/50 z-10">
-        <div className="flex items-center gap-4">
-          <div className="w-10 h-10 rounded-full bg-app-teal flex items-center justify-center text-white">
+      <header className="flex items-center justify-between px-4 py-2 bg-app-header border-b border-app-border z-10 h-[60px] shrink-0">
+        <div className="flex items-center gap-4 cursor-pointer">
+          <div className="w-10 h-10 rounded-full bg-app-teal flex items-center justify-center text-white overflow-hidden shadow-sm">
             <Icon className="w-6 h-6" />
           </div>
-          <div>
-            <h2 className="font-medium text-app-text">{contact.name}</h2>
-            <p className="text-xs text-app-subtext">
+          <div className="flex flex-col justify-center">
+            <h2 className="font-normal text-app-text text-[16px] leading-tight">{contact.name}</h2>
+            <p className="text-[13px] text-app-subtext leading-tight truncate max-w-[200px]">
                 {session.language !== Language.UNSELECTED ? (
-                   session.language === Language.ARABIC ? 'Arabic' : 'English'
-                ) : 'Select a language'}
+                   session.language === Language.ARABIC ? 'Arabic Support' : 'English Support'
+                ) : 'click here for contact info'}
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-4 text-gray-400">
-          <Search className="w-5 h-5 cursor-pointer hover:text-white" />
-          <MoreVertical className="w-5 h-5 cursor-pointer hover:text-white" />
+        <div className="flex items-center gap-6 text-app-icon">
+          <Search className="w-5 h-5 cursor-pointer hover:text-black" />
+          <MoreVertical className="w-5 h-5 cursor-pointer hover:text-black" />
         </div>
       </header>
 
       {/* Messages Area */}
-      <div className="flex-1 overflow-y-auto p-4 z-10 space-y-4">
+      <div className="flex-1 overflow-y-auto p-4 z-10 space-y-2">
         {session.messages.map((msg) => (
           <div 
             key={msg.id} 
-            className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}
+            className={`flex w-full ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}
           >
+            {/* Message Bubble */}
             <div 
-              className={`max-w-[85%] md:max-w-[70%] rounded-lg shadow-sm relative text-sm leading-relaxed
+              className={`relative max-w-[85%] md:max-w-[65%] rounded-lg shadow-msg text-[14.2px] leading-[19px] px-2 py-1.5 break-words
                 ${msg.type === 'option-selector' 
-                    ? 'w-full bg-transparent shadow-none p-0' 
+                    ? 'w-full bg-transparent shadow-none p-0 max-w-full' 
                     : msg.sender === 'user' 
-                        ? 'bg-app-outgoing text-white rounded-tr-none px-3 py-2' 
-                        : 'bg-app-incoming text-app-text rounded-tl-none px-3 py-2'}
+                        ? 'bg-app-outgoing text-app-text rounded-tr-none' 
+                        : 'bg-app-incoming text-app-text rounded-tl-none'}
               `}
             >
               {msg.type === 'language-selector' && (
-                <div className="flex flex-col gap-3 bg-app-incoming p-3 rounded-lg rounded-tl-none">
-                  <p className="font-medium text-center pb-2 border-b border-gray-700">{msg.text}</p>
+                <div className="flex flex-col gap-3 bg-white p-3 rounded-lg shadow-sm border border-gray-100 max-w-sm mx-auto">
+                  <p className="font-medium text-center pb-2 border-b border-gray-100 text-gray-700">{msg.text}</p>
                   <div className="flex gap-2 justify-center mt-1">
                     <button 
                         onClick={() => handleLanguageSelect(Language.ENGLISH)}
-                        className="flex-1 px-4 py-2 bg-app-teal hover:bg-app-tealDark text-white rounded text-xs font-bold transition-colors uppercase tracking-wide"
+                        className="flex-1 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-800 rounded text-xs font-bold transition-colors uppercase tracking-wide border border-gray-200"
                     >
                         English
                     </button>
                     <button 
                         onClick={() => handleLanguageSelect(Language.ARABIC)}
-                        className="flex-1 px-4 py-2 bg-app-teal hover:bg-app-tealDark text-white rounded text-xs font-bold transition-colors font-serif"
+                        className="flex-1 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-800 rounded text-xs font-bold transition-colors font-serif border border-gray-200"
                     >
                         العربية
                     </button>
@@ -361,23 +342,23 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
               )}
 
               {msg.type === 'option-selector' && msg.options && (
-                <div className="flex flex-col items-center gap-3 w-full">
-                    <div className="bg-app-incoming px-4 py-3 rounded-lg text-center mb-1 text-app-text">
+                <div className="flex flex-col items-center gap-3 w-full my-2">
+                    <div className="bg-white/90 backdrop-blur-sm px-4 py-2 rounded-lg text-center shadow-sm border border-gray-100 text-gray-700 font-medium text-sm">
                         {msg.text}
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 w-full max-w-md mx-auto">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full max-w-md mx-auto">
                         {msg.options.map((opt) => {
                             const OptIcon = getOptionIcon(opt.icon);
                             return (
                                 <button
                                     key={opt.value}
                                     onClick={() => handleRestaurantOptionSelect(opt)}
-                                    className="flex flex-col items-center justify-center gap-2 bg-app-sidebar hover:bg-app-active border border-gray-700 hover:border-app-teal p-4 rounded-xl transition-all group"
+                                    className="flex flex-col items-center justify-center gap-2 bg-white hover:bg-gray-50 border border-gray-200 p-4 rounded-lg shadow-sm transition-all group"
                                 >
-                                    <div className="w-10 h-10 rounded-full bg-gray-800 group-hover:bg-app-teal flex items-center justify-center text-app-teal group-hover:text-white transition-colors">
+                                    <div className="w-10 h-10 rounded-full bg-app-teal/10 group-hover:bg-app-teal flex items-center justify-center text-app-teal group-hover:text-white transition-colors">
                                         <OptIcon className="w-5 h-5" />
                                     </div>
-                                    <span className="font-medium text-gray-300 group-hover:text-white">{opt.label}</span>
+                                    <span className="font-medium text-gray-700 group-hover:text-black">{opt.label}</span>
                                 </button>
                             );
                         })}
@@ -386,7 +367,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
               )}
               
               {msg.type === 'image' && msg.mediaUrl && (
-                 <div className="flex flex-col">
+                 <div className="flex flex-col p-1">
                     <div className="relative overflow-hidden rounded-lg mb-1">
                         <img 
                             src={msg.mediaUrl} 
@@ -401,7 +382,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
 
               {msg.type === 'text' && (
                 <>
-                  <div dir={session.language === Language.ARABIC && msg.sender !== 'user' ? 'rtl' : 'ltr'}>
+                  <div className="px-1" dir={session.language === Language.ARABIC && msg.sender !== 'user' ? 'rtl' : 'ltr'}>
                     {msg.sender === 'bot' && msg.isAnimated ? (
                       <TypewriterText 
                         text={msg.text} 
@@ -411,16 +392,22 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
                       msg.text
                     )}
                   </div>
-                  <div className={`text-[10px] mt-1 flex ${msg.sender === 'user' ? 'justify-end text-blue-100' : 'justify-end text-gray-400'}`}>
-                    {formatTime(msg.timestamp)}
+                  <div className="flex justify-end items-end gap-1 mt-1 select-none">
+                    <span className="text-[11px] text-app-subtext min-w-fit">{formatTime(msg.timestamp)}</span>
+                    {msg.sender === 'user' && (
+                        <CheckCheck className="w-4 h-4 text-[#53bdeb]" /> // Blue tick simulation
+                    )}
                   </div>
                 </>
               )}
               
               {/* Timestamp for image types */}
               {msg.type === 'image' && (
-                  <div className={`text-[10px] mt-1 flex ${msg.sender === 'user' ? 'justify-end text-blue-100' : 'justify-end text-gray-400'}`}>
-                    {formatTime(msg.timestamp)}
+                  <div className="flex justify-end items-end gap-1 px-1 pb-1">
+                    <span className="text-[11px] text-app-subtext">{formatTime(msg.timestamp)}</span>
+                     {msg.sender === 'user' && (
+                        <CheckCheck className="w-4 h-4 text-[#53bdeb]" />
+                    )}
                   </div>
               )}
             </div>
@@ -430,10 +417,10 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
         {/* Typing Indicator */}
         {isTyping && (
            <div className="flex justify-start">
-             <div className="bg-app-incoming rounded-lg rounded-tl-none px-4 py-3 flex items-center gap-1">
-               <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
-               <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
-               <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+             <div className="bg-white rounded-lg rounded-tl-none px-4 py-3 flex items-center gap-1 shadow-msg">
+               <div className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
+               <div className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
+               <div className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce"></div>
              </div>
            </div>
         )}
@@ -441,35 +428,37 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Input Area */}
-      <footer className="bg-app-sidebar px-4 py-2 z-10 flex items-center gap-3">
-        <button className="text-gray-400 hover:text-gray-200">
-            <Smile className="w-6 h-6" />
-        </button>
-        <button className="text-gray-400 hover:text-gray-200">
-            <Paperclip className="w-6 h-6" />
-        </button>
+      {/* Footer / Input Area */}
+      <footer className="bg-app-header px-4 py-2 z-10 flex items-center gap-3 min-h-[62px]">
+        <div className="flex gap-2 text-app-icon">
+            <button className="hover:text-black transition-colors">
+                <Smile className="w-6 h-6" />
+            </button>
+            <button className="hover:text-black transition-colors">
+                <Paperclip className="w-6 h-6" />
+            </button>
+        </div>
 
         {isRestaurant && (
-          <>
+          <div className="flex gap-2 mr-1">
             <button 
                 onClick={() => setActivePopupImage(MENU_IMAGE_URL)}
-                className="text-gray-400 hover:text-app-teal transition-colors" 
+                className="text-app-icon hover:text-app-teal transition-colors" 
                 title="Menu"
             >
                 <BookOpenCheck className="w-6 h-6" />
             </button>
             <button 
                 onClick={() => setActivePopupImage(OFFERS_IMAGE_URL)}
-                className="text-gray-400 hover:text-app-teal transition-colors" 
+                className="text-app-icon hover:text-app-teal transition-colors" 
                 title="Offers"
             >
                 <BadgePercent className="w-6 h-6" />
             </button>
-          </>
+          </div>
         )}
         
-        <div className="flex-1 bg-app-input rounded-lg flex items-center px-4 py-2">
+        <div className="flex-1 bg-white rounded-lg flex items-center px-4 py-2 border border-white focus-within:border-white shadow-sm">
             <input 
                 type="text" 
                 value={inputText}
@@ -480,19 +469,19 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
                     ? "Select language above..." 
                     : !session.userData 
                       ? "Complete your details..." 
-                      : (session.activeWebhookUrl ? "Type your order..." : "Type a message")
+                      : (session.activeWebhookUrl ? "Type a message" : "Type a message")
                 }
                 disabled={session.language === Language.UNSELECTED || !session.userData || isTyping}
-                className="w-full bg-transparent border-none outline-none text-app-text placeholder-gray-500 text-sm"
+                className="w-full bg-transparent border-none outline-none text-app-text placeholder-gray-500 text-[15px]"
             />
         </div>
 
         {inputText.trim() ? (
-            <button onClick={handleSend} className="text-app-teal hover:text-app-tealDark transition-colors">
+            <button onClick={handleSend} className="text-app-icon hover:text-app-teal transition-colors">
                 <Send className="w-6 h-6" />
             </button>
         ) : (
-            <button className="text-gray-400 hover:text-gray-200">
+            <button className="text-app-icon hover:text-black transition-colors">
                 <Mic className="w-6 h-6" />
             </button>
         )}
