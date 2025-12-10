@@ -61,13 +61,18 @@ const App: React.FC = () => {
   };
 
   const handleReceiveMessage = (contactId: string, text: string) => {
+    // Check if the text is a direct image URL
+    // Regex checks for http(s) followed by common image extensions, allowing for query params
+    const isImageUrl = /(https?:\/\/.*\.(?:png|jpg|jpeg|gif|webp|svg))(\?.*)?$/i.test(text.trim());
+
     const newMessage: Message = {
       id: Date.now().toString(),
-      text,
+      text: isImageUrl ? 'Photo' : text,
       sender: 'bot',
       timestamp: new Date(),
-      type: 'text',
-      isAnimated: true // Enable typewriter effect for bot messages
+      type: isImageUrl ? 'image' : 'text',
+      mediaUrl: isImageUrl ? text.trim() : undefined,
+      isAnimated: !isImageUrl // Enable typewriter effect only for text messages
     };
 
     setSessions(prev => {

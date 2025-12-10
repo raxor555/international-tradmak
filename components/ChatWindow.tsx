@@ -385,6 +385,20 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
                 </div>
               )}
               
+              {msg.type === 'image' && msg.mediaUrl && (
+                 <div className="flex flex-col">
+                    <div className="relative overflow-hidden rounded-lg mb-1">
+                        <img 
+                            src={msg.mediaUrl} 
+                            alt="Content" 
+                            className="block max-w-full h-auto max-h-[300px] object-cover cursor-pointer hover:opacity-95 transition-all"
+                            onClick={() => setActivePopupImage(msg.mediaUrl!)}
+                            onLoad={scrollToBottom}
+                        />
+                    </div>
+                 </div>
+              )}
+
               {msg.type === 'text' && (
                 <>
                   <div dir={session.language === Language.ARABIC && msg.sender !== 'user' ? 'rtl' : 'ltr'}>
@@ -401,6 +415,13 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
                     {formatTime(msg.timestamp)}
                   </div>
                 </>
+              )}
+              
+              {/* Timestamp for image types */}
+              {msg.type === 'image' && (
+                  <div className={`text-[10px] mt-1 flex ${msg.sender === 'user' ? 'justify-end text-blue-100' : 'justify-end text-gray-400'}`}>
+                    {formatTime(msg.timestamp)}
+                  </div>
               )}
             </div>
           </div>

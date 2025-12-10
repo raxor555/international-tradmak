@@ -16,6 +16,7 @@ export const UserDetailsForm: React.FC<UserDetailsFormProps> = ({ isOpen, onSubm
     email: ''
   });
   const [countryCode, setCountryCode] = useState<string>('...'); // Loading state or default
+  const [error, setError] = useState<string>('');
 
   useEffect(() => {
     if (isOpen) {
@@ -40,6 +41,14 @@ export const UserDetailsForm: React.FC<UserDetailsFormProps> = ({ isOpen, onSubm
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    setError('');
+
+    // Strict validation: Must be exactly 9 digits
+    if (formData.number.length !== 9) {
+      setError('Phone number must be exactly 9 digits');
+      return;
+    }
+
     if (formData.name && formData.number && formData.email) {
       // Combine country code and user input number
       const fullUserData = {
@@ -54,6 +63,9 @@ export const UserDetailsForm: React.FC<UserDetailsFormProps> = ({ isOpen, onSubm
     // Allow only numbers
     const value = e.target.value.replace(/[^0-9]/g, '');
     setFormData({...formData, number: value});
+    
+    // Clear error if user is typing
+    if (error) setError('');
   };
 
   return (
@@ -87,7 +99,7 @@ export const UserDetailsForm: React.FC<UserDetailsFormProps> = ({ isOpen, onSubm
 
           <div className="space-y-2">
             <label className="text-xs text-app-teal font-medium uppercase tracking-wider">Phone Number</label>
-            <div className="flex items-center bg-app-input rounded-lg border border-gray-700 focus-within:border-app-teal transition-colors overflow-hidden">
+            <div className={`flex items-center bg-app-input rounded-lg border ${error ? 'border-red-500' : 'border-gray-700'} focus-within:border-app-teal transition-colors overflow-hidden`}>
               <div className="pl-3 text-gray-400 flex-shrink-0"><Phone className="w-5 h-5" /></div>
               
               {/* Fixed Country Code Section */}
@@ -105,9 +117,12 @@ export const UserDetailsForm: React.FC<UserDetailsFormProps> = ({ isOpen, onSubm
                 onChange={handleNumberChange}
               />
             </div>
-            <p className="text-[10px] text-gray-500 text-right">
-              {formData.number.length}/9 digits
-            </p>
+            <div className="flex justify-between items-center mt-1">
+                <span className="text-[10px] text-red-400 h-4">{error}</span>
+                <p className={`text-[10px] text-right transition-colors ${formData.number.length === 9 ? 'text-app-teal' : 'text-gray-500'}`}>
+                {formData.number.length}/9 digits
+                </p>
+            </div>
           </div>
 
           <div className="space-y-2">

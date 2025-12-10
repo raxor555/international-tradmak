@@ -37,9 +37,10 @@ export interface Message {
   text: string;
   sender: 'user' | 'system' | 'bot';
   timestamp: Date;
-  type: 'text' | 'language-selector' | 'option-selector';
+  type: 'text' | 'language-selector' | 'option-selector' | 'image';
   isAnimated?: boolean; // New flag for typewriter effect
   options?: ChatOption[]; // For option-selector type
+  mediaUrl?: string; // For image content
 }
 
 export interface ChatSession {

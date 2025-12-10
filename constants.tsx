@@ -26,7 +26,7 @@ export const RESTAURANT_WEBHOOKS = {
   },
   ar: {
     driveThru: 'https://n8n.srv1040836.hstgr.cloud/webhook/arabic-resturant-drivethru',
-    dineIn: 'https://n8n.srv1040836.hstgr.cloud/webhook/arabic-resturant-pickup', // Fallback for Arabic Dine In
+    dineIn: 'https://n8n.srv1040836.hstgr.cloud/webhook/dine-in-reservation-arabic',
   }
 };
 
